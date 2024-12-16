@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 from activity import Activity
 from scene import Scene
@@ -57,5 +58,15 @@ def demo_frame(gpx_filename, template_filename, second, headless):
     scene.build_figures()
     scene.render_demo(end - start, second)
     if not headless:
-        subprocess.call(["open", scene.frames[0].full_path()])
+        if os.name == 'nt':
+            # Windows
+            subprocess.call(["cmd", "/c", "start", "", scene.frames[0].full_path()], shell=True)
+        elif os.name == 'posix':
+            # macOS or Linux
+            try:
+                subprocess.call(["open", scene.frames[0].full_path()])  # macOS
+            except FileNotFoundError:
+                subprocess.call(["xdg-open", scene.frames[0].full_path()])  # Linux
+        else:
+            raise RuntimeError(f"Unsupported operating system: {os.name}")
     return scene
